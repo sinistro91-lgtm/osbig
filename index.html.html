@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Big Graff - Pedidos para Gráfica</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    :root {
+      --azul: #8fdfff;
+      --azul-forte: #00aeea;
+      --rosa: #ff4fb3;
+      --amarelo: #ffe66d;
+      --fundo: #f7fbff;
+      --texto: #222;
+      --branco: #fff;
+      --sombra: 0 10px 25px rgba(0,0,0,.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, var(--azul), #fff 45%, #ffeef8);
+      color: var(--texto);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .app {
+      max-width: 1150px;
+      margin: auto;
+      background: rgba(255,255,255,.95);
+      border-radius: 24px;
+      box-shadow: var(--sombra);
+      overflow: hidden;
+      border: 4px solid var(--azul);
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 20px;
+      background: linear-gradient(90deg, var(--azul), var(--rosa), var(--amarelo));
+      color: #111;
+    }
+
+    header img {
+      width: 180px;
+      max-width: 42%;
+      background: #2b2630;
+      border-radius: 14px;
+      padding: 8px;
+    }
+
+    header h1 { margin: 0; font-size: 28px; }
+    header p { margin: 4px 0 0; font-weight: bold; }
+
+    .content { padding: 20px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--branco);
+      border-radius: 18px;
+      padding: 18px;
+      border: 2px solid #e5f7ff;
+      box-shadow: 0 5px 15px rgba(0,0,0,.06);
+    }
+
+    .col-12 { grid-column: span 12; }
+    .col-6 { grid-column: span 6; }
+    .col-4 { grid-column: span 4; }
+    .col-3 { grid-column: span 3; }
+
+    h2 {
+      margin-top: 0;
+      border-left: 8px solid var(--rosa);
+      padding-left: 10px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #d8f3ff;
+      border-radius: 12px;
+      font-size: 15px;
+      outline: none;
+      background: #fff;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--rosa);
+      box-shadow: 0 0 0 3px rgba(255,79,179,.15);
+    }
+
+    textarea { min-height: 100px; resize: vertical; }
+
+    .btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    button {
+      border: none;
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 15px;
+      transition: .2s;
+    }
+
+    button:hover { transform: translateY(-2px); }
+
+    .primary { background: var(--azul-forte); color: white; }
+    .pink { background: var(--rosa); color: white; }
+    .yellow { background: var(--amarelo); color: #111; }
+    .danger { background: #ff5c5c; color: white; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 14px;
+    }
+
+    th {
+      background: var(--azul-forte);
+      color: white;
+      padding: 10px;
+      text-align: left;
+    }
+
+    td {
+      border-bottom: 1px solid #eee;
+      padding: 8px;
+      vertical-align: top;
+    }
+
+    td input { padding: 9px; }
+
+    .totais {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .total-box {
+      background: linear-gradient(135deg, #e7f8ff, #fff5fb);
+      border: 2px solid #dff5ff;
+      padding: 14px;
+      border-radius: 16px;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .os-list {
+      max-height: 230px;
+      overflow: auto;
+      border: 2px dashed #bfefff;
+      border-radius: 14px;
+      padding: 10px;
+      background: #fbfeff;
+    }
+
+    .item-os {
+      padding: 10px;
+      border-bottom: 1px solid #eaeaea;
+      cursor: pointer;
+      border-radius: 10px;
+    }
+
+    .item-os:hover { background: #e9f9ff; }
+
+    .status-save {
+      font-size: 13px;
+      font-weight: bold;
+      color: #0a7a9c;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 800px) {
+      .col-6, .col-4, .col-3 { grid-column: span 12; }
+      header { flex-direction: column; text-align: center; }
+      header img { max-width: 80%; }
+      .totais { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <img src="LOGO(5).png" alt="Logo Big Graff" />
+      <div>
+        <h1>Sistema de Pedidos para Gráfica</h1>
+        <p>Ordem de Serviço • Orçamento • Cadastro de Cliente • Exportação em PDF A4</p>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="grid">
+        <section class="card col-12">
+          <h2>Dados do Pedido</h2>
+          <div class="grid">
+            <div class="col-3">
+              <label>Data</label>
+              <input type="date" id="data" />
+            </div>
+            <div class="col-3">
+              <label>Pedido ou Orçamento</label>
+              <select id="tipo">
+                <option>Pedido</option>
+                <option>Orçamento</option>
+              </select>
+            </div>
+            <div class="col-3">
+              <label>Ordem de Serviço Nº</label>
+              <input type="text" id="os" placeholder="Ex: OS-001" />
+            </div>
+            <div class="col-3">
+              <label>Pagamento</label>
+              <select id="pagamento">
+                <option>Dinheiro</option>
+                <option>Cartão</option>
+                <option>Pix</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <section class="card col-6">
+          <h2>Cadastro de Cliente</h2>
+          <label>Nome do Cliente</label>
+          <input type="text" id="cliente" placeholder="Digite o nome do cliente" />
+          <br><br>
+          <label>Telefone / WhatsApp</label>
+          <input type="text" id="telefone" placeholder="(00) 00000-0000" />
+          <br><br>
+          <label>Endereço / Observação</label>
+          <textarea id="endereco" placeholder="Endereço ou observações do cliente"></textarea>
+        </section>
+
+        <section class="card col-6">
+          <h2>Consultar Ordem de Serviço</h2>
+          <label>Buscar por Nº da OS ou Nome</label>
+          <input type="text" id="busca" placeholder="Digite para consultar" oninput="listarOS()" />
+          <div class="btns">
+            <button class="primary" onclick="salvarPedido()">Salvar Pedido</button>
+            <button class="yellow" onclick="novoPedido()">Novo Pedido</button>
+          </div>
+          <div class="status-save" id="statusSave">Auto save ativado.</div>
+          <br>
+          <div class="os-list" id="listaOS"></div>
+        </section>
+
+        <section class="card col-12">
+          <h2>Discriminação do Material</h2>
+          <table id="tabelaItens">
+            <thead>
+              <tr>
+                <th>Material / Serviço</th>
+                <th>Quantidade</th>
+                <th>Valor Unitário R$</th>
+                <th>Total R$</th>
+                <th>Ação</th>
+              </tr>
+            </thead>
+            <tbody id="itens"></tbody>
+          </table>
+          <div class="btns">
+            <button class="pink" onclick="adicionarItem()">+ Adicionar Item</button>
+          </div>
+
+          <div class="totais">
+            <div class="total-box">Valor Total: <span id="valorTotal">R$ 0,00</span></div>
+            <div class="total-box">Sinal: <input type="number" id="sinal" step="0.01" value="0" oninput="calcularTotais(); autoSave();"></div>
+            <div class="total-box">Restante: <span id="restante">R$ 0,00</span></div>
+          </div>
+        </section>
+
+        <section class="card col-12">
+          <h2>Observações</h2>
+          <textarea id="obs" placeholder="Prazo, detalhes de acabamento, medidas, cores, arte, impressão etc."></textarea>
+          <div class="btns">
+            <button class="primary" onclick="exportarPDF()">Exportar PDF A4</button>
+            <button class="danger" onclick="apagarTudo()">Apagar Banco de Dados</button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let pedidos = JSON.parse(localStorage.getItem('biggraff_pedidos')) || [];
+
+    function formatarMoeda(valor) {
+      return Number(valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function gerarOS() {
+      const numero = String(pedidos.length + 1).padStart(3, '0');
+      return 'OS-' + numero;
+    }
+
+    function adicionarItem(item = {}) {
+      const tbody = document.getElementById('itens');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input type="text" class="material" value="${item.material || ''}" placeholder="Ex: Cartão de visita, banner, adesivo" oninput="calcularTotais(); autoSave();"></td>
+        <td><input type="number" class="quantidade" value="${item.quantidade || 1}" min="0" step="1" oninput="calcularTotais(); autoSave();"></td>
+        <td><input type="number" class="unitario" value="${item.unitario || 0}" min="0" step="0.01" oninput="calcularTotais(); autoSave();"></td>
+        <td class="totalItem">R$ 0,00</td>
+        <td><button class="danger" onclick="this.closest('tr').remove(); calcularTotais(); autoSave();">Excluir</button></td>
+      `;
+      tbody.appendChild(tr);
+      calcularTotais();
+    }
+
+    function obterItens() {
+      return [...document.querySelectorAll('#itens tr')].map(tr => {
+        const quantidade = parseFloat(tr.querySelector('.quantidade').value) || 0;
+        const unitario = parseFloat(tr.querySelector('.unitario').value) || 0;
+        return {
+          material: tr.querySelector('.material').value,
+          quantidade,
+          unitario,
+          total: quantidade * unitario
+        };
+      });
+    }
+
+    function calcularTotais() {
+      let total = 0;
+      document.querySelectorAll('#itens tr').forEach(tr => {
+        const qtd = parseFloat(tr.querySelector('.quantidade').value) || 0;
+        const unit = parseFloat(tr.querySelector('.unitario').value) || 0;
+        const subtotal = qtd * unit;
+        tr.querySelector('.totalItem').innerText = formatarMoeda(subtotal);
+        total += subtotal;
+      });
+      const sinal = parseFloat(document.getElementById('sinal').value) || 0;
+      document.getElementById('valorTotal').innerText = formatarMoeda(total);
+      document.getElementById('restante').innerText = formatarMoeda(total - sinal);
+    }
+
+    function dadosFormulario() {
+      return {
+        data: document.getElementById('data').value,
+        tipo: document.getElementById('tipo').value,
+        os: document.getElementById('os').value,
+        pagamento: document.getElementById('pagamento').value,
+        cliente: document.getElementById('cliente').value,
+        telefone: document.getElementById('telefone').value,
+        endereco: document.getElementById('endereco').value,
+        itens: obterItens(),
+        sinal: parseFloat(document.getElementById('sinal').value) || 0,
+        obs: document.getElementById('obs').value
+      };
+    }
+
+    function carregarPedido(pedido) {
+      document.getElementById('data').value = pedido.data || '';
+      document.getElementById('tipo').value = pedido.tipo || 'Pedido';
+      document.getElementById('os').value = pedido.os || '';
+      document.getElementById('pagamento').value = pedido.pagamento || 'Dinheiro';
+      document.getElementById('cliente').value = pedido.cliente || '';
+      document.getElementById('telefone').value = pedido.telefone || '';
+      document.getElementById('endereco').value = pedido.endereco || '';
+      document.getElementById('sinal').value = pedido.sinal || 0;
+      document.getElementById('obs').value = pedido.obs || '';
+      document.getElementById('itens').innerHTML = '';
+      (pedido.itens || []).forEach(adicionarItem);
+      if (!pedido.itens || pedido.itens.length === 0) adicionarItem();
+      calcularTotais();
+    }
+
+    function salvarPedido() {
+      const pedido = dadosFormulario();
+      if (!pedido.os) pedido.os = gerarOS();
+      document.getElementById('os').value = pedido.os;
+
+      const index = pedidos.findIndex(p => p.os === pedido.os);
+      if (index >= 0) pedidos[index] = pedido;
+      else pedidos.push(pedido);
+
+      localStorage.setItem('biggraff_pedidos', JSON.stringify(pedidos));
+      document.getElementById('statusSave').innerText = 'Pedido salvo automaticamente em ' + new Date().toLocaleTimeString('pt-BR');
+      listarOS();
+    }
+
+    function autoSave() {
+      clearTimeout(window.autoSaveTimer);
+      window.autoSaveTimer = setTimeout(() => {
+        const cliente = document.getElementById('cliente').value.trim();
+        const os = document.getElementById('os').value.trim();
+        if (cliente || os) salvarPedido();
+      }, 700);
+    }
+
+    function listarOS() {
+      const termo = document.getElementById('busca').value.toLowerCase();
+      const lista = document.getElementById('listaOS');
+      lista.innerHTML = '';
+      pedidos
+        .filter(p => (p.os || '').toLowerCase().includes(termo) || (p.cliente || '').toLowerCase().includes(termo))
+        .forEach(p => {
+          const div = document.createElement('div');
+          div.className = 'item-os';
+          div.innerHTML = `<strong>${p.os}</strong> - ${p.cliente || 'Sem nome'}<br><small>${p.tipo || ''} | ${p.data || ''}</small>`;
+          div.onclick = () => carregarPedido(p);
+          lista.appendChild(div);
+        });
+    }
+
+    function novoPedido() {
+      document.querySelectorAll('input, textarea').forEach(campo => campo.value = '');
+      document.getElementById('data').value = new Date().toISOString().split('T')[0];
+      document.getElementById('tipo').value = 'Pedido';
+      document.getElementById('pagamento').value = 'Dinheiro';
+      document.getElementById('os').value = gerarOS();
+      document.getElementById('sinal').value = 0;
+      document.getElementById('itens').innerHTML = '';
+      adicionarItem();
+      calcularTotais();
+    }
+
+    function apagarTudo() {
+      if (confirm('Deseja apagar todos os pedidos salvos?')) {
+        localStorage.removeItem('biggraff_pedidos');
+        pedidos = [];
+        listarOS();
+        novoPedido();
+      }
+    }
+
+    async function exportarPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('p', 'mm', 'a4');
+      const pedido = dadosFormulario();
+      const total = pedido.itens.reduce((s, i) => s + i.total, 0);
+      const restante = total - pedido.sinal;
+
+      doc.setFillColor(143, 223, 255);
+      doc.rect(0, 0, 210, 24, 'F');
+      doc.setFontSize(18);
+      doc.text('BIG GRAFF - ORDEM DE SERVIÇO', 12, 15);
+
+      doc.setFontSize(11);
+      let y = 34;
+      doc.text(`Data: ${pedido.data || ''}`, 12, y);
+      doc.text(`Tipo: ${pedido.tipo || ''}`, 80, y);
+      doc.text(`OS Nº: ${pedido.os || ''}`, 145, y);
+      y += 9;
+      doc.text(`Cliente: ${pedido.cliente || ''}`, 12, y);
+      y += 7;
+      doc.text(`Telefone: ${pedido.telefone || ''}`, 12, y);
+      y += 7;
+      doc.text(`Pagamento: ${pedido.pagamento || ''}`, 12, y);
+      y += 9;
+      doc.text('Endereço / Observação:', 12, y);
+      y += 6;
+      doc.text(doc.splitTextToSize(pedido.endereco || '', 185), 12, y);
+      y += 16;
+
+      doc.setFillColor(255, 79, 179);
+      doc.rect(12, y, 186, 8, 'F');
+      doc.setTextColor(255,255,255);
+      doc.text('Discriminação do Material', 14, y + 5.5);
+      doc.setTextColor(0,0,0);
+      y += 12;
+
+      pedido.itens.forEach((item, i) => {
+        if (y > 260) { doc.addPage(); y = 20; }
+        doc.text(`${i + 1}. ${item.material || ''}`, 12, y);
+        doc.text(`Qtd: ${item.quantidade}`, 120, y);
+        doc.text(`Unit: ${formatarMoeda(item.unitario)}`, 145, y);
+        doc.text(`Total: ${formatarMoeda(item.total)}`, 12, y + 6);
+        y += 14;
+      });
+
+      y += 4;
+      doc.setFillColor(255, 230, 109);
+      doc.rect(12, y, 186, 28, 'F');
+      doc.setFontSize(13);
+      doc.text(`Valor Total: ${formatarMoeda(total)}`, 16, y + 8);
+      doc.text(`Sinal: ${formatarMoeda(pedido.sinal)}`, 16, y + 16);
+      doc.text(`Restante: ${formatarMoeda(restante)}`, 16, y + 24);
+      y += 38;
+
+      doc.setFontSize(11);
+      doc.text('Observações:', 12, y);
+      y += 6;
+      doc.text(doc.splitTextToSize(pedido.obs || '', 185), 12, y);
+
+      doc.save(`${pedido.os || 'ordem-servico'}-${pedido.cliente || 'cliente'}.pdf`);
+    }
+
+    document.querySelectorAll('input, select, textarea').forEach(campo => {
+      campo.addEventListener('input', autoSave);
+      campo.addEventListener('change', autoSave);
+    });
+
+    window.onload = () => {
+      if (!document.getElementById('data').value) document.getElementById('data').value = new Date().toISOString().split('T')[0];
+      if (!document.getElementById('os').value) document.getElementById('os').value = gerarOS();
+      adicionarItem();
+      listarOS();
+    };
+  </script>
+</body>
+</html>
